@@ -1,5 +1,7 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import {upsertStreamUser} from "../lib/stream.js";
+import { compareSync } from "bcryptjs";
 
 export async function signup(req, res){
     const {email, fullName, password } = req.body;
@@ -30,7 +32,17 @@ export async function signup(req, res){
         })
 
         //Create new user in stream
-
+        try{
+            await upsertStreamUser({
+                id:newUser._id.toString(),
+                name:newUser.fullName,
+                image:newUser.profilePic || ""
+            })
+            console.log(`Stream user ${newUser.fullName} created successfully\n`);
+        }
+        catch(error){
+            console.log("Error upserting stream user", error);
+        }
 
         const token = jwt.sign({userId: newUser._id}, process.env.JWT_SECRET_KEY, {expiresIn:"1d"});
         res.cookie("jwt", token, {
@@ -71,6 +83,7 @@ export async function login(req, res){
             sameSite:"Strict",
             secure:process.env.NODE_ENV==="production"
         });
+        console.log("Login Successful\n");
         res.status(200).json({success:true, user});
 
     }
@@ -82,6 +95,55 @@ export async function login(req, res){
 
 export function logout(req, res){
     res.clearCookie("jwt");
+    console.log("Logout successful\n");
     res.status(200).json({success:true, message:"Logout sucessful"});
 }
 
+export async function onboard(req, res){
+    try{
+        const userId = req.user._id;
+        const {fullName, bio, nativeLanguage, learningLanguage, location} = req.body;
+
+        //Check and return which-ever data is unfilled
+        if( !fullName || !bio || !nativeLanguage || !learningLanguage || !location ){
+            return res.status(400).json({
+                message:"All fields are required",
+                missingFields:[
+                    !fullName && "fullName",
+                    !bio && "bio",
+                    !nativeLanguage && "nativeLanguage",
+                    !learningLanguage && "learningLanguage",
+                    !location && "location"
+                ]
+            })
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(userId,{
+            ...req.body,
+            isOnboarded:true
+        },{new:true});
+        
+        if(!updatedUser){
+            return res.status(400).json({message:"User not found"});
+        }
+
+        //Update the info in Stream
+        try{
+            await upsertStreamUser({
+                id:updatedUser._id.toString(),
+                name:updatedUser.fullName,
+                image:updatedUser.profilePic || "",
+            })
+            console.log(`Stream user updated after onboarding for ${updatedUser.fullName}`);
+        }
+        catch(streamError){
+            console.log("Error updating stream user during onboarding",streamError.message);
+        }
+
+        res.status(200).json({success:true, user:updatedUser});
+    }
+    catch(error){
+        console.error("Onboarding Error", error);
+        res.status(500).json({message:"Internal Server Error"});
+    }
+}
