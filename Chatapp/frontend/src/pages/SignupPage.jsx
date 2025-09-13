@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ShipWheelIcon } from "lucide-react";
 import { Link } from "react-router"
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { signup } from "../lib/api";
 
 const SignupPage = () => {
     const [signupData, setSignupData] = useState({
@@ -12,17 +13,15 @@ const SignupPage = () => {
 
     const queryClient = useQueryClient();
 
-    const {mutate, isPending, error } = useMutation({
-        mutationFn:async()=>{
-            const response = await axiosInstance.post("/auth/signup", signupData);
-            return response.data;
-        },
-        onSuccess:()=>queryClient.invalidateQueries({queryKey:["authUser"]}),
+    const { mutate: signupMutation, isPending, error } = useMutation({
+        mutationFn: signup,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
     });
 
     const handleSignup = (e) => {
+        console.log(signupData);
         e.preventDefault();
-        mutate()
+        signupMutation(signupData)
     }
     return (
         //Main Div
@@ -37,6 +36,13 @@ const SignupPage = () => {
                             Streamify
                         </span>
                     </div>
+
+                    {/* ERROR MESSAGE IF ANY */}
+                    {error && (
+                        <div className="alert alert-error mb-4">
+                            <span>{error.response.data.message}</span>
+                        </div>
+                    )}
 
                     <div className="w-full">
                         <form onSubmit={handleSignup}>
@@ -141,7 +147,6 @@ const SignupPage = () => {
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     )
