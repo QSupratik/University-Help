@@ -23,18 +23,27 @@ const App = () => {
     <div className="h-screen" data-theme="forest">
       <Toaster />
       <Routes>
+
         <Route path="/" element={isAuthenticated && isOnboarded ? (
-          <Layout showSidebar={true}>
-            <HomePage />
-          </Layout>
+          <HomePage />
         ) : (<Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />)
         }
-        />        <Route path="/signup" element={!isAuthenticated ? <SignupPage /> : <Navigate to="/" />}></Route>
-        <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />}></Route>
+        />
+
+        <Route path="/signup" element={
+          !isAuthenticated ? <SignUpPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} />
+        }
+        />        <Route path="/login" element={
+          !isAuthenticated ? <LoginPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} />}>
+        </Route>
         <Route path="/notifications" element={isAuthenticated ? <NotificationsPage /> : <Navigate to="/login" />}></Route>
         <Route path="/chat" element={isAuthenticated ? <ChatPage /> : <Navigate to="/login" />}></Route>
         <Route path="/call" element={isAuthenticated ? <CallPage /> : <Navigate to="/login" />}></Route>
-        <Route path="/onboarding" element={isAuthenticated ? <OnboardingPage /> : <Navigate to="/login" />}></Route>
+
+        <Route path="/onboarding" element={
+          isAuthenticated ? (!isOnboarded ? (<OnboardingPage />) : (<Navigate to="/" />)) :
+            (<Navigate to="/login" />)}
+        />
       </Routes>
     </div>
   );
