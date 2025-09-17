@@ -11,6 +11,7 @@ import { axiosInstance } from "./lib/axios.js";
 import { useQuery } from "@tanstack/react-query";
 import { getAuthUser } from "./lib/api.js";
 import useAuthUser from "./hooks/useAuthUser.js";
+import Layout from "./components/layout.jsx"
 
 
 const App = () => {
@@ -25,7 +26,9 @@ const App = () => {
       <Routes>
 
         <Route path="/" element={isAuthenticated && isOnboarded ? (
-          <HomePage />
+          <Layout showSidebar={true}>
+            <HomePage />
+          </Layout>
         ) : (<Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />)
         }
         />
@@ -33,13 +36,34 @@ const App = () => {
         <Route path="/signup" element={
           !isAuthenticated ? <SignupPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} />
         }
-        />        
+        />
         <Route path="/login" element={
           !isAuthenticated ? <LoginPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} />}>
         </Route>
-        <Route path="/notifications" element={isAuthenticated ? <NotificationsPage /> : <Navigate to="/login" />}></Route>
-        <Route path="/chat" element={isAuthenticated ? <ChatPage /> : <Navigate to="/login" />}></Route>
-        <Route path="/call" element={isAuthenticated ? <CallPage /> : <Navigate to="/login" />}></Route>
+        <Route
+          path="/notifications"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <Layout showSidebar={true}>
+                <NotificationsPage />
+              </Layout>
+            ) : (
+              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+            )
+          }
+        />
+        <Route
+          path="/chat/:id"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <Layout showSidebar={false}>
+                <ChatPage />
+              </Layout>
+            ) : (
+              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+            )
+          }
+        />        <Route path="/call" element={isAuthenticated ? <CallPage /> : <Navigate to="/login" />}></Route>
 
         <Route path="/onboarding" element={
           isAuthenticated ? (!isOnboarded ? (<OnboardingPage />) : (<Navigate to="/" />)) :
