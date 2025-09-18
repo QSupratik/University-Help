@@ -11,7 +11,7 @@ import { axiosInstance } from "./lib/axios.js";
 import { useQuery } from "@tanstack/react-query";
 import { getAuthUser } from "./lib/api.js";
 import useAuthUser from "./hooks/useAuthUser.js";
-import Layout from "./components/layout.jsx"
+import Layout from "./components/Layout.jsx"
 
 
 const App = () => {
