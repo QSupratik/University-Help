@@ -59,10 +59,15 @@ export async function getFriendRequests() {
 
 export async function acceptFriendRequest(requestId) {
     try {
-      const response = await axiosInstance.put(`/users/friend-request/${requestId}/accept`);
-      return response.data;
+        const response = await axiosInstance.put(`/users/friend-request/${requestId}/accept`);
+        return response.data;
     } catch (error) {
-      console.error("Failed to accept friend request:", error.response?.data || error.message);
-      throw error;
+        console.error("Failed to accept friend request:", error.response?.data || error.message);
+        throw error;
     }
-  }
+}
+
+export async function getStreamToken() {
+    const response = await axiosInstance.get("/chat/token");
+    return response.data;
+}
